@@ -29,6 +29,12 @@ public class DeleteTaskLoader extends AsyncTaskLoader<Integer> {
 
     @Override
     public Integer loadInBackground() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         TaskUtils.deleteTaskItemFromFile(mContext, mTaskItem);
         return getTaskItemPosition(mTaskItem.getTaskId());
     }

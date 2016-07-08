@@ -51,14 +51,19 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         return mTaskItems.size();
     }
 
-    public void setTaskItems(List<TaskItem> taskItems) {
+    public void removeTaskItems() {
         mTaskItems.clear();
-        mTaskItems.addAll(taskItems);
         notifyDataSetChanged();
     }
 
     public List<TaskItem> getTaskItems() {
         return mTaskItems;
+    }
+
+    public void setTaskItems(List<TaskItem> taskItems) {
+        mTaskItems.clear();
+        mTaskItems.addAll(taskItems);
+        notifyDataSetChanged();
     }
 
     public void addTaskItem(TaskItem taskItem) {
@@ -79,10 +84,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
     public void removeTaskAt(final int position) {
         if (position < 0 && position > mTaskItems.size() - 1) {
             // Invalid index
+            return;
         }
 
-        mTaskItems.remove(position);
-        notifyItemRemoved(position);
+        try {
+            mTaskItems.remove(position);
+            notifyItemRemoved(position);
+        } catch (ArrayIndexOutOfBoundsException aioobe) {
+            aioobe.printStackTrace();
+        }
     }
 
     public void updateTaskItemStatus(String id, String status) {

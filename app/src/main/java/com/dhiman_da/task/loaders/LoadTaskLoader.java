@@ -25,6 +25,13 @@ public class LoadTaskLoader extends AsyncTaskLoader<List<TaskItem>> {
 
     @Override
     public List<TaskItem> loadInBackground() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
         return TaskUtils.getTaskItemsFromFile(mContext);
     }
 

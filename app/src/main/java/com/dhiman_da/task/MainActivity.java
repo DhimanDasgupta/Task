@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -34,25 +34,92 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
     private static final String TAG = "MainActivity";
     private static final String TASK_ID_PREFIX = "task-id";
 
-    private static final String TASK_TO_BE_DELETED = "task_to_be_deleted";
-
+    private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
 
     private AppCompatButton mNowButton;
     private AppCompatButton mWhenBestButton;
 
     private TaskAdapter mTaskAdapter;
+    private final LoaderManager.LoaderCallbacks<Integer> mDeleteTaskCallbacks = new LoaderManager.LoaderCallbacks<Integer>() {
+        @Override
+        public Loader<Integer> onCreateLoader(int id, Bundle args) {
+            mSwipeRefreshLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeRefreshLayout.setRefreshing(true);
+                }
+            });
+            return new DeleteTaskLoader(getApplicationContext(), mTaskAdapter.getTaskItems(), TaskItem.fromBundle(args));
+        }
 
+        @Override
+        public void onLoadFinished(Loader<Integer> loader, Integer data) {
+            if (mTaskAdapter != null) {
+                mTaskAdapter.removeTaskAt(data.intValue());
+                mTaskAdapter.notifyItemRemoved(data.intValue());
+            }
+
+            if (mSwipeRefreshLayout != null) {
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Integer> loader) {
+            if (mSwipeRefreshLayout != null) {
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+        }
+    };
+    private final LoaderManager.LoaderCallbacks<List<TaskItem>> mLoadTaskCallbacks = new LoaderManager.LoaderCallbacks<List<TaskItem>>() {
+        @Override
+        public Loader<List<TaskItem>> onCreateLoader(int id, Bundle args) {
+            mSwipeRefreshLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeRefreshLayout.setRefreshing(true);
+                }
+            });
+            return new LoadTaskLoader(getApplicationContext());
+        }
+
+        @Override
+        public void onLoadFinished(Loader<List<TaskItem>> loader, List<TaskItem> data) {
+            if (mTaskAdapter != null) {
+                mTaskAdapter.removeTaskItems();
+                mTaskAdapter.setTaskItems(data);
+                mTaskAdapter.notifyDataSetChanged();
+            }
+
+            if (mSwipeRefreshLayout != null) {
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+        }
+
+        @Override
+        public void onLoaderReset(Loader<List<TaskItem>> loader) {
+            if (mSwipeRefreshLayout != null) {
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+        }
+    };
     private GcmNetworkManager mGcmNetworkManager;
-    private BroadcastReceiver mBroadcastReceiver;
-
-    private LoaderManager.LoaderCallbacks<TaskItem> mAddTaskCallbacks = new LoaderManager.LoaderCallbacks<TaskItem>() {
+    private final LoaderManager.LoaderCallbacks<TaskItem> mAddTaskCallbacks = new LoaderManager.LoaderCallbacks<TaskItem>() {
         @Override
         public Loader<TaskItem> onCreateLoader(int id, Bundle args) {
+            if (mSwipeRefreshLayout != null) {
+                mSwipeRefreshLayout.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSwipeRefreshLayout.setRefreshing(true);
+                    }
+                });
+            }
             return new AddTaskLoader(getApplicationContext(), TaskItem.fromBundle(args));
         }
 
@@ -84,49 +151,20 @@ public class MainActivity extends AppCompatActivity {
                 nowIntent.putExtra(TaskUtils.TASK_ID, data.getTaskId());
                 getApplication().startService(nowIntent);
             }
-        }
 
-        @Override
-        public void onLoaderReset(Loader<TaskItem> loader) {
-
-        }
-    };
-    private LoaderManager.LoaderCallbacks<Integer> mDeleteTaskCallbacks = new LoaderManager.LoaderCallbacks<Integer>() {
-        @Override
-        public Loader<Integer> onCreateLoader(int id, Bundle args) {
-            return new DeleteTaskLoader(getApplicationContext(), mTaskAdapter.getTaskItems(), TaskItem.fromBundle(args));
-        }
-
-        @Override
-        public void onLoadFinished(Loader<Integer> loader, Integer data) {
-
-        }
-
-        @Override
-        public void onLoaderReset(Loader<Integer> loader) {
-
-        }
-    };
-
-    private LoaderManager.LoaderCallbacks<List<TaskItem>> mLoadTaskCallbacks = new LoaderManager.LoaderCallbacks<List<TaskItem>>() {
-        @Override
-        public Loader<List<TaskItem>> onCreateLoader(int id, Bundle args) {
-            return new LoadTaskLoader(getApplicationContext());
-        }
-
-        @Override
-        public void onLoadFinished(Loader<List<TaskItem>> loader, List<TaskItem> data) {
-            if (mTaskAdapter != null) {
-                mTaskAdapter.setTaskItems(data);
-                mTaskAdapter.notifyDataSetChanged();
+            if (mSwipeRefreshLayout != null) {
+                mSwipeRefreshLayout.setRefreshing(false);
             }
         }
 
         @Override
-        public void onLoaderReset(Loader<List<TaskItem>> loader) {
-
+        public void onLoaderReset(Loader<TaskItem> loader) {
+            if (mSwipeRefreshLayout != null) {
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
         }
     };
+    private BroadcastReceiver mBroadcastReceiver;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -145,11 +183,21 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_main_swipe_refresh_layout);
+        if (mSwipeRefreshLayout != null) {
+            mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    getSupportLoaderManager().initLoader(Constants.LOAD_TASK_LOADER_ID, null, mLoadTaskCallbacks);
+                }
+            });
+        }
+
         mRecyclerView = (RecyclerView) findViewById(R.id.activity_main_recycler_view);
         if (mRecyclerView != null) {
             mTaskAdapter = new TaskAdapter(new ArrayList<TaskItem>());
 
-            mRecyclerView.addItemDecoration(new TaskItemDecoration((int) ViewUtils.pxFromDp(mRecyclerView.getContext(), 2f)));
+            mRecyclerView.addItemDecoration(new TaskItemDecoration((int) ViewUtils.pxFromDp(mRecyclerView.getContext(), 4f)));
             mRecyclerView.addOnItemTouchListener(new TaskItemClickListener(mRecyclerView.getContext(), new TaskItemClickListener.OnItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
@@ -198,19 +246,49 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+
+        if (isInMultiWindowMode()) {
+            startListing();
+        }
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
-        final LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
-        localBroadcastManager.registerReceiver(mBroadcastReceiver, new IntentFilter(TaskUtils.TASK_UPDATE_FILTER));
-
-        getSupportLoaderManager().initLoader(Constants.LOAD_TASK_LOADER_ID, null, mLoadTaskCallbacks);
+        if (!isInMultiWindowMode()) {
+            startListing();
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
+        if (!isInMultiWindowMode()) {
+            stopListing();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        if (isInMultiWindowMode()) {
+            stopListing();
+        }
+    }
+
+    private void startListing() {
+        final LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
+        localBroadcastManager.registerReceiver(mBroadcastReceiver, new IntentFilter(TaskUtils.TASK_UPDATE_FILTER));
+
+        getSupportLoaderManager().initLoader(Constants.LOAD_TASK_LOADER_ID, null, mLoadTaskCallbacks);
+    }
+
+    private void stopListing() {
         final LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
         localBroadcastManager.unregisterReceiver(mBroadcastReceiver);
     }

@@ -6,12 +6,19 @@
     android:orientation="vertical"
     tools:context="com.dhiman_da.task.MainActivity">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/activity_main_recycler_view"
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/activity_main_swipe_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        tools:layout_item="@layout/adapter_task"/>
+        android:layout_weight="1">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/activity_main_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            tools:layout_item="@layout/adapter_task" />
+    </android.support.v4.widget.SwipeRefreshLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,18 +27,18 @@
 
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/activity_main_now_button"
+            style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
             android:text="@string/now"/>
 
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/activity_main_when_best_button"
+            style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
             android:text="@string/when_best"/>
     </LinearLayout>
 </LinearLayout>

@@ -25,6 +25,12 @@ public class AddTaskLoader extends AsyncTaskLoader<TaskItem> {
 
     @Override
     public TaskItem loadInBackground() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         TaskUtils.addTaskItemToFile(mContext, mTaskItem);
         return mTaskItem;
     }
