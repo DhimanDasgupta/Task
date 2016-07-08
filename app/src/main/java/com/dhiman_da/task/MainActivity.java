@@ -45,6 +45,10 @@ public class MainActivity extends BaseActivity {
     private AppCompatButton mWhenBestButton;
 
     private TaskAdapter mTaskAdapter;
+
+    private GcmNetworkManager mGcmNetworkManager;
+    private BroadcastReceiver mBroadcastReceiver;
+
     private final LoaderManager.LoaderCallbacks<Integer> mDeleteTaskCallbacks = new LoaderManager.LoaderCallbacks<Integer>() {
         @Override
         public Loader<Integer> onCreateLoader(int id, Bundle args) {
@@ -108,7 +112,6 @@ public class MainActivity extends BaseActivity {
             }
         }
     };
-    private GcmNetworkManager mGcmNetworkManager;
     private final LoaderManager.LoaderCallbacks<TaskItem> mAddTaskCallbacks = new LoaderManager.LoaderCallbacks<TaskItem>() {
         @Override
         public Loader<TaskItem> onCreateLoader(int id, Bundle args) {
@@ -164,7 +167,6 @@ public class MainActivity extends BaseActivity {
             }
         }
     };
-    private BroadcastReceiver mBroadcastReceiver;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
