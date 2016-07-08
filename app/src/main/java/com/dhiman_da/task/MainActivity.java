@@ -214,7 +214,7 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onClick(View view) {
                     final String taskId = TASK_ID_PREFIX + Calendar.getInstance().getTimeInMillis();
-                    final TaskItem taskItem =  new TaskItem.TaskBuilder().
+                    final TaskItem taskItem = new TaskItem.TaskBuilder().
                             taskId(taskId).
                             taskType(TaskItem.NOW_TASK).
                             taskStatus(TaskItem.PENDING_STATUS).
@@ -232,7 +232,7 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onClick(View view) {
                     final String taskId = TASK_ID_PREFIX + Calendar.getInstance().getTimeInMillis();
-                    final TaskItem taskItem =  new TaskItem.TaskBuilder().
+                    final TaskItem taskItem = new TaskItem.TaskBuilder().
                             taskId(taskId).
                             taskType(TaskItem.ONE_OFF_TASK).
                             taskStatus(TaskItem.PENDING_STATUS).
